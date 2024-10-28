@@ -1,16 +1,20 @@
 # Caso de Uso: Resolução de Problema de Conexão no Docker Swarm entre Máquinas em Redes Diferentes
 
 ### Contexto
+
 Durante a configuração de um cluster Docker Swarm, houve um erro ao tentar conectar um nó worker a um nó manager. As máquinas (nós) estavam em redes diferentes e o Docker estava usando os IPs de interfaces de rede virtuais (*bridge*), o que gerou um erro de conexão.
 
 ### Erro Encontrado
+
 Ao tentar executar o comando `docker swarm join` no nó worker para conectar ao nó manager, foi retornado o seguinte erro:
 *Error response from daemon: rpc error: code = Unavailable desc = connection error: desc = "transport: Error while dialing dial tcp 172.xx.xx.xx:xxxx: connect: connection refused"*
 
 ### Causa do Erro
+
 O erro ocorreu porque o Docker estava utilizando o endereço IP da interface `docker0` (uma interface de rede virtual criada pelo Docker), que é usada para a comunicação interna dos contêineres, não sendo apropriada para a comunicação entre máquinas em redes diferentes. O endereço IP utilizado não era acessível pelo nó worker.
 
 ### Solução
+
 #### Passo 1: Identificar o IP Correto do Nó Manager
 
 Ao tentar se conectar ao nó manager, você deve usar o endereço IP da interface de rede que está acessível pelos outros nós na rede.
@@ -51,6 +55,7 @@ Verificação de Conectividade
 Para garantir que o worker conseguia se comunicar com o manager, foi utilizado o comando `ping` no worker para verificar a conectividade com o IP do manager: *ping 10.xxx.x.x*
 
 ### Resultado
+
 Após esses passos, o nó worker foi conectado com sucesso ao nó manager e o cluster Docker Swarm foi configurado corretamente.
 
 ### Resumo dos Passos:
