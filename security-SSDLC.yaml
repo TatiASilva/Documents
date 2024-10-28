@@ -1,0 +1,124 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+    - develop
+
+  paths:
+    exclude:
+      - 'security-SSDLC.yaml'  # Exclui o próprio arquivo YAML do trigger
+
+pr: none  # Impede que pull requests acionem o pipeline
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  runPipelineOnPR: false  # Definir como falso por padrão
+  phpVersion: 8.2  # Atualizando para a versão mais recente do PHP
+
+schedules:
+- cron: '0 3 */15 * 1'
+  displayName: 'Fortnightly Monday 3am build'
+  branches:
+    include:
+    - test
+  always: false
+
+# Definindo estágios para organizar as etapas do pipeline
+stages:
+- stage: Build
+  jobs:
+  - job: SecurityAnalysis
+    displayName: 'Security Analysis'
+    # Passos para análise de segurança
+    steps:
+    - script: echo Hello, world!
+      displayName: 'Run a one-line script'
+
+    - script: |
+        # Configurando a versão do PHP
+        sudo update-alternatives --set php /usr/bin/php$(phpVersion)
+        sudo update-alternatives --set phar /usr/bin/phar$(phpVersion)
+        sudo update-alternatives --set phpdbg /usr/bin/phpdbg$(phpVersion)
+        sudo update-alternatives --set php-cgi /usr/bin/php-cgi$(phpVersion)
+        sudo update-alternatives --set phar.phar /usr/bin/phar.phar$(phpVersion)
+        php -version
+      displayName: 'Use PHP version $(phpVersion)'
+
+    - script: |
+        # Adicione outras tarefas de build, teste, e deploy conforme necessário
+        echo Add other tasks to build, test, and deploy your project.
+        echo See https://aka.ms/yaml
+      displayName: 'Run a multi-line script'
+
+# 'psecio/parse' analisa o código PHP da aplicação diretamente para encontrar vulnerabilidades lógicas ou de implementação.
+    - script: |
+        # Adicionando a biblioteca psecio/parse como dependência de desenvolvimento
+        composer require --dev psecio/parse
+        # Verificando dependências desatualizadas
+        composer outdated
+      displayName: 'Dependency Check'
+
+    - script: |
+        # Executando análise do MegaLinter
+        ./vendor/bin/psecio-parse scan Application/ > result-ssdlc-.txt
+        ls
+        echo '=============='
+        readlink -f result-ssdlc-.txt
+        echo '=============='
+      continueOnError: true
+      displayName: 'MegaLinter Analysis'
+
+    # Etapa 1: Revisão de Dependências
+    - script: |
+        # Verificando dependências desatualizadas
+        composer outdated
+      displayName: 'Dependency Check'
+
+# Etapa 2: Instalação e Execução da Análise Dinâmica de Segurança (exemplo: OWASP Dependency-Check)
+# OWASP Dependency-Check analisa as dependências externas (bibliotecas e pacotes instalados via Composer, por exemplo) para garantir que não haja falhas conhecidas nelas.
+    - script: |
+        # Baixando o Dependency-Check
+        curl -O -L https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.3/dependency-check-8.4.3-release.zip
+        # Descompactando o arquivo
+        unzip -q dependency-check-8.4.3-release.zip -d $(Agent.TempDirectory)/dependency-check
+        # Configurando o PATH
+        export PATH=$PATH:$(Agent.TempDirectory)/dependency-check/bin
+        # Verificando o conteúdo do diretório
+        ls -R $(Agent.TempDirectory)/dependency-check
+        # Executando a análise dinâmica
+        $(Agent.TempDirectory)/dependency-check/dependency-check/bin/dependency-check.sh --project xyz-ssdlc --scan Application/
+      displayName: 'Dynamic Security Analysis'
+
+    # Etapa 3: Publicação de Relatórios Detalhados
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/result-ssdlc-.txt'
+        ArtifactName: 'SecurityAnalysisResults'
+      displayName: 'Publish MegaLinter Results'
+
+    # Etapa 4: Confirmação do Arquivo result-ssdlc-.txt
+    - script: |
+        ls /home/vsts/work/1/s/
+        echo '=============='
+      displayName: 'result-ssdlc.txt confirm'
+
+    # Etapa 5: Envio de E-mail com Anexo
+    - task: servbus.SendMail4VSTS.SendMail4VSTS.SendEmail@0
+      inputs:
+        To: 'xxx@xxx'
+        From: 'xxxv@xxx'
+        Subject: 'Result Build  SSDLC'
+        Body: |
+          Result Build  SSDLC
+        Attachment: '/home/vsts/work/1/s/result-ssdlc.txt'
+        SmtpServer: 'smtp.office365.com'
+        SmtpPort: '587'
+        SmtpUsername: 'xxx@xxxx'
+        SmtpPassword: $(SMTPPASSWORD)
+        STARTTLS: true
