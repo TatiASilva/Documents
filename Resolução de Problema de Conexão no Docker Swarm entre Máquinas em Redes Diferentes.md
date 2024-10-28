@@ -58,7 +58,7 @@ Para garantir que o worker conseguia se comunicar com o manager, foi utilizado o
 
 Após esses passos, o nó worker foi conectado com sucesso ao nó manager e o cluster Docker Swarm foi configurado corretamente.
 
-### Resumo dos Passos:
+### Resumo dos Passos
 
 1. Identificar o IP correto do nó manager (não utilizar IPs de interfaces *bridge*).
 2. Remover o manager do Swarm existente (`docker swarm leave --force`).
