@@ -21,3 +21,24 @@ A estrutura dos arquivos segue as áreas de estudo e tecnologias com as quais tr
 ## 💡 Como Contribuir
 
 Este repositório é público e aberto a contribuições! Sinta-se à vontade para sugerir melhorias, adicionar exemplos ou compartilhar dicas adicionais para qualquer um dos temas abordados. 
+
+**********************************************************************************************************************************************************
+
+# 📘 **Study Documentation and Use Cases**  
+Welcome to my study documentation repository! This space is dedicated to sharing my learning journey in technology, with a focus on the solutions I've developed to overcome challenges, the use cases explored, and the tools and practices that have supported my progress.
+
+## 🔍 **Objective**  
+This repository aims not only to organize my study materials but also to provide practical insights that may help other professionals and students facing similar challenges in the tech field.
+
+## 📝 **Contents**  
+Here you will find:
+
+- **Use Cases**: Accounts of real situations and hands-on projects, describing the context and solution process.
+- **Challenges and Solutions**: Examples of technical difficulties I encountered and the steps taken to solve them.
+- **Tools and Technologies**: A space for noting best practices, usage tips, and helpful commands for the tools I use, such as Azure, Terraform, Docker, Kubernetes, and more.
+
+## 🚀 **Repository Structure**  
+The file structure follows the areas of study and technologies I've worked with. Each folder represents a category, and each document within it addresses a specific case or topic.
+
+## 💡 **How to Contribute**  
+This repository is public and open to contributions! Feel free to suggest improvements, add examples, or share additional tips for any of the topics covered.
