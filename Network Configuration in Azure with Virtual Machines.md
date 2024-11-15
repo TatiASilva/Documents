@@ -101,7 +101,7 @@ Create an environment with two virtual machines (VMs) in different networks, whe
 4. **Restricted Access**:
    - Both `poc-server-vm01` and `dev-server-vm01` can only be accessed via SSH from `jump-server-vm01`, based on the configured NSG rules and VNet Peering.
 
----
+
 
 This document details the process and adjustments made to configure virtual machines in different networks, with SSH access control using Azure's networking tools like VNets, Peering, and NSGs.
 
@@ -197,6 +197,6 @@ Criar um ambiente com duas máquinas virtuais (VMs) que estão em redes diferent
 4. **Acesso Restrito**:
    - `poc-server-vm01` e `dev-server-vm01` só podem ser acessadas via SSH a partir da `jump-server-vm01` com base nas regras NSG e peering configurados.
 
----
+
 
 Essa documentação detalha o processo e os ajustes feitos para configurar as máquinas virtuais em redes diferentes, com controle de acesso via SSH, usando as ferramentas de rede do Azure como VNets, Peering e NSG.
