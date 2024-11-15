@@ -1,4 +1,4 @@
-# Agent pool creation in Azure DevOps.md
+# Agent pool creation in Azure DevOps
 
 The Azure DevOps agent enables the server to perform Continuous Integration (CI) and Continuous Delivery (CD) tasks.
 
