@@ -10,6 +10,134 @@ trigger:
 
   paths:
     exclude:
+      - 'security-SSDLC.yaml'  # Exclude the YAML file itself from the trigger
+
+pr: none  # Prevent pull requests from triggering the pipeline
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  runPipelineOnPR: false  # Set to false by default
+  phpVersion: 8.2  # Update to the latest PHP version
+
+schedules:
+- cron: '0 3 */15 * 1'
+  displayName: 'Fortnightly Monday 3am build'
+  branches:
+    include:
+    - test
+  always: false
+
+# Defining stages to organize the pipeline steps
+stages:
+- stage: Build
+  jobs:
+  - job: SecurityAnalysis
+    displayName: 'Security Analysis'
+    # Steps for security analysis
+    steps:
+    - script: echo Hello, world!
+      displayName: 'Run a one-line script'
+
+    - script: |
+        # Configurando a versão do PHP
+        sudo update-alternatives --set php /usr/bin/php$(phpVersion)
+        sudo update-alternatives --set phar /usr/bin/phar$(phpVersion)
+        sudo update-alternatives --set phpdbg /usr/bin/phpdbg$(phpVersion)
+        sudo update-alternatives --set php-cgi /usr/bin/php-cgi$(phpVersion)
+        sudo update-alternatives --set phar.phar /usr/bin/phar.phar$(phpVersion)
+        php -version
+      displayName: 'Use PHP version $(phpVersion)'
+
+    - script: |
+        # Adicione outras tarefas de build, teste, e deploy conforme necessário
+        echo Add other tasks to build, test, and deploy your project.
+        echo See https://aka.ms/yaml
+      displayName: 'Run a multi-line script'
+
+# 'psecio/parse' scans the application's PHP code directly to find logical or implementation vulnerabilities.
+    - script: |
+        # Adding psecio/parse as a development dependency
+        composer require --dev psecio/parse
+        # Checking for outdated dependencies
+        composer outdated
+      displayName: 'Dependency Check'
+
+    - script: |
+        # Running MegaLinter analysis
+        ./vendor/bin/psecio-parse scan Application/ > result-ssdlc-.txt
+        ls
+        echo '==============' 
+        readlink -f result-ssdlc-.txt
+        echo '==============' 
+      continueOnError: true
+      displayName: 'MegaLinter Analysis'
+
+    # Step 1: Dependency Review
+    - script: |
+        # Checking for outdated dependencies
+        composer outdated
+      displayName: 'Dependency Check'
+
+# Step 2: Installing and Running Dynamic Security Analysis (e.g., OWASP Dependency-Check)
+# OWASP Dependency-Check analyzes external dependencies (libraries and packages installed via Composer, for instance) to ensure there are no known vulnerabilities.
+    - script: |
+        # Downloading Dependency-Check
+        curl -O -L https://github.com/jeremylong/DependencyCheck/releases/download/v8.4.3/dependency-check-8.4.3-release.zip
+        # Unzipping the file
+        unzip -q dependency-check-8.4.3-release.zip -d $(Agent.TempDirectory)/dependency-check
+        # Setting up the PATH
+        export PATH=$PATH:$(Agent.TempDirectory)/dependency-check/bin
+        # Checking the directory contents
+        ls -R $(Agent.TempDirectory)/dependency-check
+        # Running dynamic analysis
+        $(Agent.TempDirectory)/dependency-check/dependency-check/bin/dependency-check.sh --project xyz-ssdlc --scan Application/
+      displayName: 'Dynamic Security Analysis'
+
+    # Step 3: Publishing Detailed Reports
+    - task: PublishBuildArtifacts@1
+      inputs:
+        PathtoPublish: '$(Build.SourcesDirectory)/result-ssdlc-.txt'
+        ArtifactName: 'SecurityAnalysisResults'
+      displayName: 'Publish MegaLinter Results'
+
+    # Step 4: Confirming the result-ssdlc-.txt file
+    - script: |
+        ls /home/vsts/work/1/s/
+        echo '==============' 
+      displayName: 'result-ssdlc.txt confirm'
+
+    # Step 5: Sending Email with Attachment
+    - task: servbus.SendMail4VSTS.SendMail4VSTS.SendEmail@0
+      inputs:
+        To: 'xxx@xxx'
+        From: 'xxxv@xxx'
+        Subject: 'Result Build SSDLC'
+        Body: |
+          Result Build SSDLC
+        Attachment: '/home/vsts/work/1/s/result-ssdlc.txt'
+        SmtpServer: 'smtp.office365.com'
+        SmtpPort: '587'
+        SmtpUsername: 'xxx@xxxx'
+        SmtpPassword: $(SMTPPASSWORD)
+        STARTTLS: true
+
+
+**************************************************************************************************************************************************************************
+
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+  branches:
+    include:
+    - develop
+
+  paths:
+    exclude:
       - 'security-SSDLC.yaml'  # Exclui o próprio arquivo YAML do trigger
 
 pr: none  # Impede que pull requests acionem o pipeline
